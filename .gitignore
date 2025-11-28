@@ -1,0 +1,9 @@
+# Ignore secrets and temporary files
+.env
+.env.*
+logs/**
+!logs/.gitkeep
+result/**
+!result/.gitkeep
+__pycache__/
+*.pyc
