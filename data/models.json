@@ -1,0 +1,6 @@
+{"reasoning_models":
+    {
+        "microsoft_phi-4_Plus": "microsoft/Phi-4-reasoning-plus",
+        "deepseek_r1_distill_qwen_7b": "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
+    }
+}
