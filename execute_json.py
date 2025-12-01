@@ -54,9 +54,11 @@ if __name__ == "__main__":
     gpu_id = 0  # default GPU id
     #model_key = "microsoft_phi-4_Plus"
     #model_key = "deepseek_r1_distill_qwen_7b"
-    model_key = "deepseek_r1_distill_qwen_14b"
-    #model_key = "microsoft_phi-4_mini_flash"
+    #model_key = "deepseek_r1_distill_qwen_14b"
+    model_key = "microsoft_phi-4_mini-reasoning"
+    #model_key = "microsoft_phi-4-reasoning"
     # load models from data folder
+    print(f"Loading model for key: {model_key}")
     model_name, split_function = get_model_and_split_function(model_key)    
     general_sys_prompt = get_default_system_prompt(model_name)
     model_kwargs = {

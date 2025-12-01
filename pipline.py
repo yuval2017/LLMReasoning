@@ -14,6 +14,7 @@ config.init_env()
 # config.clear_processes()
 
 from utils import load_model, generate, extract_think_and_after
+from models_factory import get_default_system_prompt, get_model_and_split_function
 from state import state
 import torch
 import json
@@ -61,7 +62,7 @@ def extract_final_answer(answer: str):
         {"role": "user", "content": prompt},
     ]
     answer, _ = generate2(messages)
-    think_part, final_answer = extract_think_and_after(answer)
+    think_part, final_answer = split_function(answer)
     return final_answer
 
 
@@ -94,7 +95,7 @@ def my_generate(expression_data, iterations: int = 5):
     new_data = []
     for _ in range(iterations):
         answer, total_time = generate2(messages)
-        think_part, final_answer = extract_think_and_after(answer)
+        think_part, final_answer = split_function(answer)
         num_thought_tokens = max_tokens
         num_answer_tokens = 0
 
@@ -211,8 +212,9 @@ if __name__ == "__main__":
     # load models from data folder
     with open("data/models.json", "r") as f:
         models = json.load(f)
-
-    model_name = models["reasoning_models"]["microsoft_phi-4_Plus"]
+    model_key = "microsoft_phi-4_Plus"
+    model_name, split_function = get_model_and_split_function(model_key)
+    general_sys_prompt = get_default_system_prompt(model_name)
     model_kwargs = {
         "dtype": torch.float16,
         "trust_remote_code": True,
@@ -225,7 +227,6 @@ if __name__ == "__main__":
     device = next(model.parameters()).device
     print("Model device:", device)
 
-    general_sys_prompt = "You are Phi, a language model trained by Microsoft to help users. Your role as an assistant involves thoroughly exploring questions through a systematic thinking process before providing the final precise and accurate solutions. This requires engaging in a comprehensive cycle of analysis, summarizing, exploration, reassessment, reflection, backtracing, and iteration to develop well-considered thinking process. Please structure your response into two main sections: Thought and Solution using the specified format: <think> {Thought section} </think> {Solution section}. In the Thought section, detail your reasoning process in steps. Each step should include detailed considerations such as analysing questions, summarizing relevant findings, brainstorming new ideas, verifying the accuracy of the current steps, refining any errors, and revisiting previous steps. In the Solution section, based on various attempts, explorations, and reflections from the Thought section, systematically present the final solution that you deem correct. The Solution section should be logical, accurate, and concise and detail necessary steps needed to reach the conclusion. Now, try to solve the following question through the above guidelines:"
     print(model.config)
     max_tokens = model.config.max_position_embeddings
     print("Max tokens:", max_tokens)

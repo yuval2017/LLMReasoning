@@ -9,7 +9,7 @@ print("Environment initialized.")
 from utils import load_model, generate, extract_think_and_after, extract_think_and_after_deepseek, generate_with_time
 from models_factory import get_model_and_split_function
 import torch
-model_name, split_function = get_model_and_split_function("deepseek_r1_distill_qwen_7b")
+model_name, split_function = get_model_and_split_function("microsoft_phi-4-reasoning")
 #model_name = "microsoft/Phi-4-reasoning-plus"
 gpu_id = 0  # default GPU id``
 model_kwargs = {

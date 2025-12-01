@@ -52,7 +52,7 @@ def generate(model, tokenizer, messages, **generate_kwargs):
     max_new_tokens = model.config.max_position_embeddings - input_ids.shape[1]
     if max_new_tokens < 1:
         raise ValueError("Input is too long for the model's context window.")
-
+    print(f"Generating with max_new_tokens={max_new_tokens}...")
     # 3) Generate
     outputs = model.generate(
         input_ids=input_ids,

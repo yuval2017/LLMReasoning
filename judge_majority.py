@@ -14,13 +14,15 @@ class JudgeMajority:
         Raises an error if no valid answer is produced after max_retries.
         """
         for _ in range(self.max_retries):
-            raw_output = self.generate(prompt).strip()
+            raw_output = self.generate(prompt)
+            if not raw_output:
+                continue
+            raw_output = raw_output.strip()
             answer = raw_output.upper()
             # print(f"prompt:\n {prompt}")
             # print(f"Processed answer: {answer}")
             # print("--" * 20)
-            if not answer:
-                continue
+            
             # Only allow exact 'TRUE' or 'FALSE'
             if "TRUE" in answer:
                 return "TRUE"
