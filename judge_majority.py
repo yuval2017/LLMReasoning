@@ -86,9 +86,17 @@ if __name__ == "__main__":
     torch.cuda.reset_accumulated_memory_stats()
 
     k = 5
-    system_prompt = "You are a strict answer judge."
+    system_prompt = """
+Your task: return only TRUE or FALSE.
+1. Extract the final numerical answer from model_output.
+2. Compare it to correct_answer.
+3. If equal → TRUE. Else → FALSE.
+No explanation. No extra text.
+Output must be exactly one character: TRUE or FALSE.
+"""
+
     path = "result/deepseek_r1_distill_qwen_7b/asdiv_evaluation_format.json"
-    model_key = "deepseek_r1_distill_qwen_7b"
+    model_key = "deepseek_r1_distill_qwen_14b"
     gpu_id = 0  # default GPU id
     with open(path, "r") as f:
         data = json.load(f)

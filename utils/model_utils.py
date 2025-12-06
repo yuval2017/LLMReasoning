@@ -3,6 +3,7 @@ from functools import wraps
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import re
 import time
+import torch
 def format_args(**kwargs):
     return "\n".join(f"{key}={value}" for key, value in kwargs.items())
     
@@ -29,7 +30,7 @@ def load_model(model_name, device_map="auto", **kwargs):
         
     return model, tokenizer
 
-def generate(model, tokenizer, messages, **generate_kwargs):
+def generate(model, tokenizer, messages, max_retries=3, **generate_kwargs, ):
     # 1) Build prompt text using ChatML template
     prompt_text = tokenizer.apply_chat_template(
         messages,
@@ -53,19 +54,37 @@ def generate(model, tokenizer, messages, **generate_kwargs):
     if max_new_tokens < 1:
         raise ValueError("Input is too long for the model's context window.")
     print(f"Generating with max_new_tokens={max_new_tokens}...")
-    # 3) Generate
-    outputs = model.generate(
-        input_ids=input_ids,
-        attention_mask=attention_mask,
-        max_new_tokens=max_new_tokens,
-        temperature=0.8,
-        top_k=50,
-        top_p=0.95,
-        pad_token_id=tokenizer.pad_token_id,
-        do_sample=True,
-        **generate_kwargs
-    )
+    outputs = None
+    for _ in range(max_retries):
+        try:
+            # Try to allocate memory for generation
+                # 3) Generate
+            outputs = model.generate(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                max_new_tokens=max_new_tokens,
+                temperature=0.8,
+                top_k=50,
+                top_p=0.95,
+                pad_token_id=tokenizer.pad_token_id,
+                do_sample=True,
+                **generate_kwargs
+            )
+            break  # If successful, exit the loop
+        except torch.cuda.OutOfMemoryError as e:
+            if 'CUDA out of memory' in str(e):
+                print(f"Out of memory with max_new_tokens={max_new_tokens}, reducing by 50 and retrying...")
+                # max_new_tokens -= 50
+                # if max_new_tokens < 1:
+                #raise ValueError("Input is too long for the model's context window after adjustments.")
+                torch.cuda.empty_cache()
+                torch.cuda.ipc_collect()
 
+            else:
+                raise e
+
+    if outputs is None:
+        raise RuntimeError("Generation failed after maximum retries.")
     # 4) Extract ONLY new tokens
     answer = tokenizer.decode(
         outputs[0][input_ids.shape[1]:],

@@ -15,14 +15,14 @@ def print_base_expressions_csv_lengths():
 if not os.path.exists("data"):
     os.makedirs("data")
 naive_ops = ["*", "/", "sqrt", "exp", "log", "pow"]
-path1 = "data/base_expressions"
+path1 = "data/with_range/base_expressions"
 if not os.path.exists(path1):
     os.makedirs(path1)
 rads_simple = ["sin", "cos", "tan"]
-path2 = "data/hard_expressions"
+path2 = "data/with_range/hard_expressions"
 if not os.path.exists(path2):
     os.makedirs(path2)
-path3 = "data/very_hard_expressions"
+path3 = "data/with_range/very_hard_expressions"
 if not os.path.exists(path3):
     os.makedirs(path3)
 columns = ["New op", "SYMPY expression", "Expression for LLM", "Value"]
@@ -76,7 +76,7 @@ def execute_to_csv(exp: str, path: str, filter_ops: list, num_steps: int = 30):
         #get last expression
         last_expr = df["SYMPY expression"].iloc[-1]
         print(f"Resuming from last expression:\n{last_expr}")
-        gen = ExpressionGenerator(last_expr, filter_ops=filter_ops)
+        gen = ExpressionGenerator(last_expr, filter_ops=filter_ops, valid_range = (-500, 500))
         gen.expr_demo_str = df["Expression for LLM"].iloc[-1]
         operation = df["New op"].iloc[-1]
         print(gen.sym_expr.evalf())
@@ -85,8 +85,8 @@ def execute_to_csv(exp: str, path: str, filter_ops: list, num_steps: int = 30):
     else:
         df = pd.DataFrame(columns=columns)
     
-    gen = ExpressionGenerator(expression, filter_ops=filter_ops)
-    print(f"Starting expression:\n{gen.expr_str}")
+    gen = ExpressionGenerator(expression, filter_ops=filter_ops, valid_range = (-500, 500))
+    #print(f"Starting expression:\n{gen.expr_str}")
     for _ in range(len(df), num_steps):
         new_row = {
             "New op": operation,
@@ -94,9 +94,12 @@ def execute_to_csv(exp: str, path: str, filter_ops: list, num_steps: int = 30):
             "Expression for LLM": gen.expr_demo_str,
             "Value": gen.sym_expr.evalf()
         }
+        for key in new_row:
+            print(f"{key}: {new_row[key]}")
+        print("-----" * 10)
         _, operation = next(gen)
         df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-        
+    
     df.to_csv(path, index=False, encoding="utf-8")
     print(f"Saved to {path}")
         

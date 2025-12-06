@@ -56,9 +56,20 @@ def debug_row(d: dict):
 
 
 def extract_final_answer(answer: str):
-    prompt = f"This is the model's response:\n{answer}\n Please extract and return **only the final numerical answer**. If there is no clear numerical answer, return 'N/A'."
+       # system prompt 
+    general_sys_prompt2 = """
+You are an expert assistant specialized in extracting numerical answers from text. 
+Your task is to read the provided text and return **ONLY the final numerical value**. 
+- Do NOT include any words, punctuation, or explanations in the answer. 
+- Return the number exactly as it is. 
+- If no clear numerical value is found, return 'N/A'.
+    """
+
+    # user prompt 
+    prompt = f"Extract the final numerical answer from this text:\n{answer}"
+
     messages = [
-        {"role": "system", "content": general_sys_prompt},
+        {"role": "system", "content": general_sys_prompt2},
         {"role": "user", "content": prompt},
     ]
     answer, _ = generate2(messages)
@@ -86,8 +97,15 @@ def my_generate(expression_data, iterations: int = 5):
     op_or_func = expression_data["New op"]
     value = expression_data["Value"]
     expr_for_llm = expression_data["Expression for LLM"]
+    general_sys_prompt = """
+You are a mathematical assistant specialized in evaluating numerical expressions. 
 
-    prompt = f"Solve the following expression: {expr_for_llm}\nReturn only the numerical answer rounded to 4 decimal places."
+- Carefully reason about the expression step by step if needed.
+- Evaluate the expression as accurately as possible.
+- Provide the final numerical answer.
+- Do not invent extra content beyond what is necessary to calculate the answer.
+"""
+    prompt = f"Solve the following expression:\n{expr_for_llm}"
     messages = [
         {"role": "system", "content": general_sys_prompt},
         {"role": "user", "content": prompt},
@@ -212,9 +230,10 @@ if __name__ == "__main__":
     # load models from data folder
     with open("data/models.json", "r") as f:
         models = json.load(f)
-    model_key = "microsoft_phi-4_Plus"
+    model_key = "deepseek_r1_distill_qwen_7b"
     model_name, split_function = get_model_and_split_function(model_key)
-    general_sys_prompt = get_default_system_prompt(model_name)
+    
+
     model_kwargs = {
         "dtype": torch.float16,
         "trust_remote_code": True,
@@ -233,9 +252,9 @@ if __name__ == "__main__":
 
     for expression in expressions:
         path = (
-            f"data/hard_expressions/Expression_{expression.replace('/', '_div_')}.csv"
+            f"data/with_range/base_expressions/Expression_{expression.replace('/', '_div_')}.csv"
         )
-        result_path = f"result/hard_expressions/arithmetic_expressions_{expression.replace('/', '_div_')}.csv"
+        result_path = f"result/{model_key}/base_expressions/arithmetic_expressions_{expression.replace('/', '_div_')}.csv"
 
         # path2 =  (
         #     f"data/base_expressions/Expression_{expression.replace('/', '_div_')}.csv"

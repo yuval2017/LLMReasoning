@@ -55,8 +55,8 @@ if __name__ == "__main__":
     #model_key = "microsoft_phi-4_Plus"
     #model_key = "deepseek_r1_distill_qwen_7b"
     #model_key = "deepseek_r1_distill_qwen_14b"
-    model_key = "microsoft_phi-4_mini-reasoning"
-    #model_key = "microsoft_phi-4-reasoning"
+    #model_key = "microsoft_phi-4_mini-reasoning"
+    model_key = "microsoft_phi-4-reasoning"
     # load models from data folder
     print(f"Loading model for key: {model_key}")
     model_name, split_function = get_model_and_split_function(model_key)    
